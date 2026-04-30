@@ -1,0 +1,193 @@
+{
+  "info": {
+    "name": "Kiosk Admin API",
+    "description": "Manual tests for activation code creation, assignment, validation, listing, and revocation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "activationCode",
+      "value": ""
+    },
+    {
+      "key": "deviceId",
+      "value": "kiosk-001"
+    },
+    {
+      "key": "otherDeviceId",
+      "value": "kiosk-002"
+    }
+  ],
+  "item": [
+    {
+      "name": "Activation Codes",
+      "item": [
+        {
+          "name": "Create Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"created\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set(\"activationCode\", json.code);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expires_in_days\": 365\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/activation-codes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "activation-codes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Codes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activation-codes/list",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "activation-codes",
+                "list"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Assign Code To Device",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_id\": \"{{deviceId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/activation-codes/{{activationCode}}/assign",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "activation-codes",
+                "{{activationCode}}",
+                "assign"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Assign Same Code To Other Device",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_id\": \"{{otherDeviceId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/activation-codes/{{activationCode}}/assign",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "activation-codes",
+                "{{activationCode}}",
+                "assign"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Validate Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{activationCode}}\",\n  \"device_id\": \"{{deviceId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/validate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "validate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Revoke Code",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/activation-codes/{{activationCode}}/revoke",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "activation-codes",
+                "{{activationCode}}",
+                "revoke"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
