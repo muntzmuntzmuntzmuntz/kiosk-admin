@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# kiosk-admin
 
-## Getting Started
+Internal/test admin dashboard for kiosk activation codes. This app is built with Next.js and Prisma and stores activation codes in Postgres.
 
-First, run the development server:
+## Important
+
+This app is not production-safe yet.
+
+- Login is client-side only.
+- Credentials are hardcoded in the frontend.
+- API routes do not enforce server-side authentication.
+
+Use this deployment only for internal testing on a private URL with limited access.
+
+## Local development
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Set `DATABASE_URL` in `.env`.
+
+3. Apply migrations and generate the Prisma client:
+
+```bash
+npx prisma generate
+npx prisma migrate deploy
+```
+
+4. Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Render deployment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+This repo includes a `render.yaml` blueprint for a Render web service plus a managed Postgres database.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### What Render will create
 
-## Learn More
+- Web service: `kiosk-admin`
+- Postgres database: `kiosk-admin-db`
 
-To learn more about Next.js, take a look at the following resources:
+### Build and start commands
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Build: `npm install && npx prisma generate && npx prisma migrate deploy && npm run build`
+- Start: `npm run start`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Deploy steps
 
-## Deploy on Vercel
+1. Push this repository to GitHub.
+2. In Render, create a new Blueprint deployment from that repository.
+3. Confirm the blueprint picks up `render.yaml` from the repository root.
+4. Let Render create the web service and Postgres instance.
+5. Open the deployed URL after the first successful build.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Environment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`DATABASE_URL` is wired from the Render Postgres database automatically by the blueprint.
+
+Render runs Prisma migrations with the service's `preDeployCommand` before each deploy.
+
+## Current test login
+
+- Username: `admin`
+- Password: `admin`
+
+These credentials are hardcoded in the current test build and should be replaced before any real deployment.
