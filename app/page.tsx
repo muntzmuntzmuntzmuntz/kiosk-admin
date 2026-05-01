@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 type ActivationCode = {
   id: string;
   code: string;
+  description: string | null;
   status: string;
   expiresAt: string;
   deviceId: string | null;
@@ -54,6 +55,15 @@ function statusClass(status: string) {
   }
 }
 
+function PencilIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 fill-none stroke-current stroke-[1.7]">
+      <path d="M3.75 13.75 3 17l3.25-.75L15 7.5 12.5 5 3.75 13.75Z" />
+      <path d="m11.75 5.75 2.5 2.5" />
+    </svg>
+  );
+}
+
 export default function Home() {
   const router = useRouter();
   const [codes, setCodes] = useState<ActivationCode[]>([]);
@@ -62,6 +72,9 @@ export default function Home() {
   const [authChecked, setAuthChecked] = useState(false);
   const [revokingCode, setRevokingCode] = useState<string | null>(null);
   const [removingCode, setRemovingCode] = useState<string | null>(null);
+  const [editingCode, setEditingCode] = useState<ActivationCode | null>(null);
+  const [descriptionDraft, setDescriptionDraft] = useState("");
+  const [isSavingDescription, setIsSavingDescription] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "revoked" | "expired">("all");
   const [deviceFilter, setDeviceFilter] = useState<"all" | "assigned" | "unassigned">("all");
@@ -174,6 +187,48 @@ export default function Home() {
     }
   }
 
+  function openDescriptionEditor(code: ActivationCode) {
+    setEditingCode(code);
+    setDescriptionDraft(code.description ?? "");
+  }
+
+  function closeDescriptionEditor() {
+    if (isSavingDescription) {
+      return;
+    }
+
+    setEditingCode(null);
+    setDescriptionDraft("");
+  }
+
+  async function saveDescription() {
+    if (!editingCode) {
+      return;
+    }
+
+    setIsSavingDescription(true);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch(`/api/activation-codes/${editingCode.code}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: descriptionDraft }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update description");
+      }
+
+      await refreshCodes();
+      closeDescriptionEditor();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Something went wrong");
+    } finally {
+      setIsSavingDescription(false);
+    }
+  }
+
   useEffect(() => {
     const auth = localStorage.getItem("kiosk-admin-authenticated") === "true";
     if (!auth) {
@@ -212,6 +267,7 @@ export default function Home() {
     localStorage.removeItem("kiosk-admin-authenticated");
     router.replace("/login");
   }
+
   const activeCodes = codes.filter((code) => displayStatus(code) === "active").length;
   const revokedCodes = codes.filter((code) => displayStatus(code) === "revoked").length;
   const expiredCodes = codes.filter((code) => displayStatus(code) === "expired").length;
@@ -220,19 +276,10 @@ export default function Home() {
   const revokedPercentage = totalCodes ? Math.round((revokedCodes / totalCodes) * 100) : 0;
   const expiredPercentage = totalCodes ? Math.round((expiredCodes / totalCodes) * 100) : 0;
   const assignedPercentage = totalCodes ? Math.round((assignedCodes / totalCodes) * 100) : 0;
+
   if (!authChecked) {
     return null;
   }
-
-  const chartStyle = {
-    background: totalCodes
-      ? `conic-gradient(#059669 0 ${activePercentage}%, #e11d48 ${activePercentage}% ${
-          activePercentage + revokedPercentage
-        }%, #71717a ${activePercentage + revokedPercentage}% ${
-          activePercentage + revokedPercentage + expiredPercentage
-        }%, #e4e4e7 ${activePercentage + revokedPercentage + expiredPercentage}% 100%)`
-      : "#e4e4e7",
-  };
 
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-950">
@@ -339,15 +386,16 @@ export default function Home() {
                 </label>
               </div>
               <p className="text-sm text-zinc-500">
-                Showing {pageStart}–{pageEnd} of {totalCount} codes
+                Showing {pageStart}-{pageEnd} of {totalCount} codes
               </p>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left text-sm">
+              <table className="w-full min-w-[980px] text-left text-sm">
                 <thead className="bg-zinc-50 text-xs font-semibold uppercase text-zinc-500">
                   <tr>
                     <th className="px-5 py-3">Code</th>
+                    <th className="px-5 py-3">Description</th>
                     <th className="px-5 py-3">Status</th>
                     <th className="px-5 py-3">Expires</th>
                     <th className="px-5 py-3">Device</th>
@@ -379,6 +427,15 @@ export default function Home() {
                               {code.code}
                             </span>
                           </td>
+                          <td className="px-5 py-4 text-zinc-600">
+                            {code.description ? (
+                              <span className="block max-w-xs truncate" title={code.description}>
+                                {code.description}
+                              </span>
+                            ) : (
+                              <span className="text-zinc-400">No description</span>
+                            )}
+                          </td>
                           <td className="px-5 py-4">
                             <span
                               className={`inline-flex h-7 items-center rounded-full border px-3 text-xs font-semibold capitalize ${statusClass(
@@ -402,21 +459,29 @@ export default function Home() {
                             <div className="inline-flex items-center gap-2">
                               <button
                                 type="button"
+                                onClick={() => openDescriptionEditor(code)}
+                                aria-label={`Edit description for ${code.code}`}
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-300 bg-white text-sm font-medium text-zinc-700 transition hover:bg-zinc-100"
+                              >
+                                <PencilIcon />
+                              </button>
+                              <button
+                                type="button"
                                 onClick={() => revoke(code.code)}
                                 disabled={!canRevoke || revokingCode === code.code || removingCode === code.code}
                                 aria-label={status === "revoked" ? "Already revoked" : "Revoke code"}
                                 className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-300 bg-white text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:text-zinc-400"
                               >
-                                {revokingCode === code.code ? "…" : "×"}
+                                {revokingCode === code.code ? "..." : "X"}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => removeCode(code.code)}
                                 disabled={!!code.deviceId}
                                 aria-label="Remove code"
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-300 bg-white text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:text-zinc-400"
+                                className="inline-flex h-9 items-center justify-center rounded-md border border-zinc-300 bg-white px-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:text-zinc-400"
                               >
-                                {removingCode === code.code ? "…" : "🗑"}
+                                {removingCode === code.code ? "..." : "Del"}
                               </button>
                             </div>
                           </td>
@@ -453,6 +518,64 @@ export default function Home() {
           </div>
         </section>
       </main>
+
+      {editingCode ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/40 px-4">
+          <div className="w-full max-w-lg rounded-2xl border border-zinc-200 bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-zinc-500">Edit description</p>
+                <h2 className="mt-1 font-mono text-sm font-semibold text-zinc-950">
+                  {editingCode.code}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={closeDescriptionEditor}
+                className="rounded-md p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-700"
+                aria-label="Close description editor"
+              >
+                X
+              </button>
+            </div>
+
+            <label className="mt-5 block text-sm font-medium text-zinc-700">
+              Description
+              <textarea
+                value={descriptionDraft}
+                onChange={(event) => setDescriptionDraft(event.target.value.slice(0, 200))}
+                rows={4}
+                maxLength={200}
+                className="mt-2 w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-zinc-500"
+                placeholder="Add a note for this code, device, or deployment."
+              />
+            </label>
+
+            <p className="mt-2 text-right text-xs text-zinc-400">
+              {descriptionDraft.length}/200
+            </p>
+
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeDescriptionEditor}
+                disabled={isSavingDescription}
+                className="h-10 rounded-md border border-zinc-300 bg-white px-4 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveDescription}
+                disabled={isSavingDescription}
+                className="h-10 rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSavingDescription ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
