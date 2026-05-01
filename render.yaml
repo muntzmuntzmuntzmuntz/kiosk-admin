@@ -1,3 +1,6 @@
+databases:
+  - name: kiosk-admin-db
+    plan: free
 services:
   - type: web
     name: kiosk-admin
