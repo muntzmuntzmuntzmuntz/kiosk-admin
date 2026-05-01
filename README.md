@@ -61,7 +61,7 @@ This repo includes a `render.yaml` blueprint for a Render web service plus a man
 
 `DATABASE_URL` is wired from the Render Postgres database automatically by the blueprint.
 
-Render runs Prisma migrations with the service's `preDeployCommand` before each deploy.
+Render runs Prisma migrations as part of the build command in this test setup.
 
 ## Current test login
 
