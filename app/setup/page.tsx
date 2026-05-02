@@ -26,7 +26,7 @@ export default function SetupPage() {
         </div>
 
         <a
-          href="/kiosk-setup-package.txt"
+          href="/kiosk-setup.zip"
           download
           className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-md bg-zinc-950 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800"
         >
