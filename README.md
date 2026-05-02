@@ -20,16 +20,39 @@ Use this deployment only for internal testing on a private URL with limited acce
 npm install
 ```
 
-2. Set `DATABASE_URL` in `.env`.
+2. Start the local database services:
 
-3. Apply migrations and generate the Prisma client:
+```bash
+docker compose up -d
+```
+
+This starts:
+
+- Postgres on `localhost:5432`
+- Adminer on `http://localhost:8080`
+
+Adminer login values:
+
+- System: `PostgreSQL`
+- Server: `postgres`
+- Username: `postgres`
+- Password: `postgres`
+- Database: `kiosk_admin`
+
+3. Set `DATABASE_URL` in `.env`.
+
+```bash
+cp .env.example .env
+```
+
+4. Apply migrations and generate the Prisma client:
 
 ```bash
 npx prisma generate
 npx prisma migrate deploy
 ```
 
-4. Start the app:
+5. Start the app:
 
 ```bash
 npm run dev

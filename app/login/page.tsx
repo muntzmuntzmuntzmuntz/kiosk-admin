@@ -22,7 +22,7 @@ export default function LoginPage() {
       return;
     }
 
-    setCheckingAuth(false);
+    queueMicrotask(() => setCheckingAuth(false));
   }, [router]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
