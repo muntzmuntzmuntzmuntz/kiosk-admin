@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
+import { Manrope } from "next/font/google";
+import { SiteHeader } from "./site-header";
 import "./globals.css";
 
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: "500",
+});
+
 export const metadata: Metadata = {
-  title: "Kiosk Admin",
-  description: "Activation code administration",
+  title: "Binate",
+  description:
+    "Systems built within two states.",
 };
 
 export default function RootLayout({
@@ -12,8 +20,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${manrope.className} h-full antialiased`}>
+      <body className="min-h-full flex flex-col">
+        <SiteHeader />
+        {children}
+      </body>
     </html>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const ADMIN_USERNAME = "admin";
@@ -13,17 +13,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [checkingAuth, setCheckingAuth] = useState(true);
-
-  useEffect(() => {
-    const auth = localStorage.getItem(AUTH_KEY) === "true";
-    if (auth) {
-      router.replace("/");
-      return;
-    }
-
-    queueMicrotask(() => setCheckingAuth(false));
-  }, [router]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -32,16 +21,12 @@ export default function LoginPage() {
 
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
       localStorage.setItem(AUTH_KEY, "true");
-      router.replace("/");
+      router.replace("/kiosk");
       return;
     }
 
     setErrorMessage("Invalid username or password.");
     setIsSubmitting(false);
-  }
-
-  if (checkingAuth) {
-    return null;
   }
 
   return (

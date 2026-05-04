@@ -1,0 +1,8 @@
+<svg width="640" height="170" viewBox="0 0 640 170" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
+  <title id="title">Binate</title>
+  <path d="M82 29C46.1 32.8 18 63.2 18 100C18 136.8 46.1 167.2 82 171V29Z" stroke="#050505" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M101 54C135.8 56.1 163.5 85 163.5 120.3C163.5 155.6 135.8 184.5 101 186.6V54Z" fill="#050505" transform="translate(0 -16)"/>
+  <text x="228" y="119" fill="#050505" font-family="Manrope, Arial, Helvetica, sans-serif" font-size="92" font-weight="800" letter-spacing="-3">
+    Binate
+  </text>
+</svg>
