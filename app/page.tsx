@@ -31,7 +31,7 @@ const EXPIRING_SOON_DAYS = 30;
 const UPGRADE_YEARS = 10;
 
 function isExpired(code: ActivationCode) {
-  return new Date(code.expiresAt).getTime() < Date.now();
+  return !!code.deviceId && new Date(code.expiresAt).getTime() < Date.now();
 }
 
 function daysUntilExpiration(code: ActivationCode) {
@@ -497,7 +497,7 @@ export default function Home() {
                             </span>
                           </td>
                           <td className="px-5 py-4 text-zinc-600">
-                            {dateFormatter.format(new Date(code.expiresAt))}
+                            {code.deviceId ? dateFormatter.format(new Date(code.expiresAt)) : "Starts on assignment"}
                           </td>
                           <td className="px-5 py-4 text-zinc-600">
                             {code.deviceId ? (
@@ -610,7 +610,9 @@ export default function Home() {
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm font-medium text-zinc-700">Expiration date</span>
                 <span className="text-sm text-zinc-600">
-                  {dateFormatter.format(new Date(editingCode.expiresAt))}
+                  {editingCode.deviceId
+                    ? dateFormatter.format(new Date(editingCode.expiresAt))
+                    : "Starts on assignment"}
                 </span>
               </div>
 

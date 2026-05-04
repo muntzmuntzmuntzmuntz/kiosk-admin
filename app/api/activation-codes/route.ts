@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getActivationExpiresAt } from "@/lib/activation-code-expiration";
 
 type CreateActivationCodeRequest = {
   type?: string;
@@ -21,13 +22,10 @@ export async function POST(req: Request) {
     body = {};
   }
 
-  const durationDays = body.type === "trial" ? 3 : 3650;
-  const expiresAt = new Date(Date.now() + durationDays * 86400000);
-
   const code = await prisma.activationCode.create({
     data: {
       code: generateCode(body.type),
-      expiresAt,
+      expiresAt: getActivationExpiresAt(new Date(), body.type),
     },
   });
 

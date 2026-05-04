@@ -14,10 +14,10 @@ export async function GET(request: Request) {
     where.status = "revoked";
   } else if (status === "active") {
     where.status = "active";
-    where.expiresAt = { gt: now };
+    where.OR = [{ deviceId: null }, { expiresAt: { gt: now } }];
   } else if (status === "expired") {
     where.status = { not: "revoked" };
-    where.expiresAt = { lt: now };
+    where.AND = [{ deviceId: { not: null } }, { expiresAt: { lt: now } }];
   }
 
   if (device === "assigned") {

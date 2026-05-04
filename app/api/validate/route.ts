@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getActivationExpiresAt } from "@/lib/activation-code-expiration";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -22,7 +23,6 @@ export async function GET(req: Request) {
   if (!record) {
     return Response.json({ valid: false, reason: "not_found" });
   }
-  console.log(record);
 
   if (new Date() > record.expiresAt) {
     return Response.json({
@@ -56,18 +56,24 @@ export async function POST(req: Request) {
     return Response.json({ valid: false, reason: "revoked" });
   }
 
-  if (new Date() > record.expiresAt) {
+  const now = new Date();
+
+  if (record.deviceId && now > record.expiresAt) {
     return Response.json({ valid: false, reason: "expired" });
   }
 
+  const expiresAt = record.deviceId
+    ? record.expiresAt
+    : getActivationExpiresAt(now, record.code);
+
   await prisma.activationCode.update({
     where: { code },
-    data: { deviceId: deviceId },
+    data: { deviceId, expiresAt },
   });
 
   return Response.json({
     valid: true,
     code,
-    expiresAt: record.expiresAt,
+    expiresAt,
   });
 }

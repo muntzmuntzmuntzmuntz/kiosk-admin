@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getActivationExpiresAt } from "@/lib/activation-code-expiration";
 
 function getDeviceId(body: unknown) {
   if (!body || typeof body !== "object") {
@@ -35,10 +36,12 @@ async function assignCode(req: Request, { params }: { params: Promise<{ code: st
     where: {
       code,
       status: "active",
-      expiresAt: { gt: now },
       deviceId: null,
     },
-    data: { deviceId },
+    data: {
+      deviceId,
+      expiresAt: getActivationExpiresAt(now, code),
+    },
   });
 
   if (updated.count === 1) {
@@ -66,7 +69,7 @@ async function assignCode(req: Request, { params }: { params: Promise<{ code: st
     return Response.json({ assigned: false, reason: "revoked" }, { status: 409 });
   }
 
-  if (now > record.expiresAt) {
+  if (record.deviceId && now > record.expiresAt) {
     return Response.json({ assigned: false, reason: "expired" }, { status: 409 });
   }
 
