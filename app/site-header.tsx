@@ -1,12 +1,13 @@
 "use client";
 
-import { SignOutButton } from "@clerk/nextjs";
+import { SignOutButton, useAuth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const { isLoaded, isSignedIn } = useAuth();
   const isHome = pathname === "/";
   const isKiosk = pathname === "/kiosk";
 
@@ -33,12 +34,24 @@ export function SiteHeader() {
               <a className="hover:text-zinc-950" href="#samples">Samples</a>
               <a className="hover:text-zinc-950" href="#contact">Contact</a>
             </nav>
-            <Link
-              className="inline-flex h-10 items-center justify-center border border-zinc-950 bg-white px-4 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-950 hover:text-white"
-              href="/login"
-            >
-              Login
-            </Link>
+            {isLoaded && !isSignedIn ? (
+              <Link
+                className="inline-flex h-10 items-center justify-center border border-zinc-950 bg-white px-4 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-950 hover:text-white"
+                href="/login"
+              >
+                Login
+              </Link>
+            ) : null}
+            {isLoaded && isSignedIn ? (
+              <SignOutButton redirectUrl="/">
+                <button
+                  type="button"
+                  className="h-10 border border-zinc-300 bg-white px-4 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-100"
+                >
+                  Logout
+                </button>
+              </SignOutButton>
+            ) : null}
           </div>
         ) : null}
 
