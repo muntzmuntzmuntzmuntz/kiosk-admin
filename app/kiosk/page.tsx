@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 type ActivationCode = {
   id: string;
@@ -22,7 +21,6 @@ type ActivationCodeListResponse = {
 type ActivationCodeKind = "regular" | "trial";
 type LoadState = "loading" | "ready" | "error";
 
-const AUTH_KEY = "kiosk-admin-authenticated";
 const LIMIT = 8;
 const EXPIRING_SOON_DAYS = 30;
 const UPGRADE_YEARS = 10;
@@ -83,10 +81,8 @@ function RefreshIcon() {
 }
 
 export default function AdminPage() {
-  const router = useRouter();
   const [codes, setCodes] = useState<ActivationCode[]>([]);
   const [loadState, setLoadState] = useState<LoadState>("loading");
-  const [authChecked, setAuthChecked] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
   const [removingCode, setRemovingCode] = useState<string | null>(null);
@@ -196,13 +192,6 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    if (localStorage.getItem(AUTH_KEY) !== "true") {
-      router.replace("/login");
-      return;
-    }
-
-    setAuthChecked(true);
-
     const controller = new AbortController();
 
     fetchCodes({ page, status: statusFilter, device: deviceFilter }, controller.signal)
@@ -219,7 +208,7 @@ export default function AdminPage() {
       });
 
     return () => controller.abort();
-  }, [fetchCodes, page, statusFilter, deviceFilter, router]);
+  }, [fetchCodes, page, statusFilter, deviceFilter]);
 
   function openDescriptionEditor(code: ActivationCode) {
     setEditingCode(code);
@@ -233,8 +222,6 @@ export default function AdminPage() {
     setDescriptionDraft("");
     setExtendExpiration(false);
   }
-
-  if (!authChecked) return null;
 
   const totalPages = Math.max(1, Math.ceil(totalCount / LIMIT));
   const pageStart = totalCount === 0 ? 0 : (page - 1) * LIMIT + 1;

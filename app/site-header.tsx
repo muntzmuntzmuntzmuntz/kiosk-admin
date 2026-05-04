@@ -1,21 +1,14 @@
 "use client";
 
+import { SignOutButton } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-
-const AUTH_KEY = "kiosk-admin-authenticated";
+import { usePathname } from "next/navigation";
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const router = useRouter();
   const isHome = pathname === "/";
   const isKiosk = pathname === "/kiosk";
-
-  function handleLogout() {
-    localStorage.removeItem(AUTH_KEY);
-    router.replace("/");
-  }
 
   return (
     <header className={isHome ? "bg-[#f7f4ee] text-zinc-950" : "bg-zinc-50 text-zinc-950"}>
@@ -48,13 +41,14 @@ export function SiteHeader() {
         ) : null}
 
         {isKiosk ? (
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="h-10 border border-zinc-300 bg-white px-4 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-100"
-          >
-            Logout
-          </button>
+          <SignOutButton redirectUrl="/">
+            <button
+              type="button"
+              className="h-10 border border-zinc-300 bg-white px-4 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-100"
+            >
+              Logout
+            </button>
+          </SignOutButton>
         ) : null}
       </div>
     </header>

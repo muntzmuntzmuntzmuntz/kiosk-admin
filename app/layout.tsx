@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Manrope } from "next/font/google";
 import { SiteHeader } from "./site-header";
 import "./globals.css";
@@ -20,11 +21,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${manrope.className} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
-        <SiteHeader />
-        {children}
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" className={`${manrope.className} h-full antialiased`}>
+        <body className="min-h-full flex flex-col">
+          <SiteHeader />
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
