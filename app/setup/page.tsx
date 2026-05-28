@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 
 const setupSteps = [
   "Factory reset the tablet.",
+  "Connect to your home Wifi",
   "Enable Developer Mode.",
   "Turn on USB Debugging.",
   "Connect the tablet to the PC.",
